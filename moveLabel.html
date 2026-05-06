@@ -336,7 +336,7 @@
       <label for="teamSearch">Team Name <span class="req">*</span></label>
       <div class="char-count">Select GEN — General if items do not belong to a specific team</div>
       <div class="search-dropdown" id="teamDropdown">
-        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList" aria-activedescendant="">
+        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList">
         <ul class="dropdown-list" id="teamList" role="listbox"></ul>
       </div>
     </div>
@@ -346,7 +346,7 @@
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
       <div class="char-count">Old site equivalent names shown in brackets</div>
       <div class="search-dropdown" id="destDropdown">
-        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList" aria-activedescendant="">
+        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList">
         <ul class="dropdown-list" id="destList" role="listbox"></ul>
       </div>
     </div>
@@ -376,7 +376,7 @@
       <div class="char-count"><span id="origCount">70</span> characters remaining</div>
     </div>
 
-    <button class="btn-print" onclick="handlePrint()">Print</button>
+    <button type="button" class="btn-print" onclick="handlePrint()">Print</button>
   </div>
 
   <!-- Live Preview -->
@@ -468,7 +468,7 @@
       teamList.appendChild(li);
     });
     highlightedIndex = -1;
-    teamSearch.setAttribute('aria-activedescendant', '');
+    teamSearch.removeAttribute('aria-activedescendant');
   }
 
   function selectTeam(code, name) {
@@ -521,7 +521,7 @@
     } else if (e.key === 'Escape') {
       teamList.classList.remove('open');
       teamSearch.setAttribute('aria-expanded', 'false');
-      teamSearch.setAttribute('aria-activedescendant', '');
+      teamSearch.removeAttribute('aria-activedescendant');
     }
   });
 
@@ -574,7 +574,7 @@
       destList.appendChild(li);
     });
     destHighlightedIndex = -1;
-    destSearch.setAttribute('aria-activedescendant', '');
+    destSearch.removeAttribute('aria-activedescendant');
   }
 
   function selectDest(code, name) {
@@ -627,7 +627,7 @@
     } else if (e.key === 'Escape') {
       destList.classList.remove('open');
       destSearch.setAttribute('aria-expanded', 'false');
-      destSearch.setAttribute('aria-activedescendant', '');
+      destSearch.removeAttribute('aria-activedescendant');
     }
   });
 
@@ -667,6 +667,7 @@
     return 'handling-general';
   }
 
+  let lastPgValue = '';
   function updatePreview() {
     const pg = document.getElementById('productGroup').value;
     const team = selectedTeam;
@@ -675,8 +676,12 @@
     const desc = itemDesc.value;
     const orig = origLocation.value;
 
-    document.getElementById('pv-productGroup').textContent = pg || '\u00A0';
-    fitRow1Text(document.getElementById('pv-productGroup'));
+    const pvPg = document.getElementById('pv-productGroup');
+    pvPg.textContent = pg || '\u00A0';
+    if (pg !== lastPgValue) {
+      fitRow1Text(pvPg);
+      lastPgValue = pg;
+    }
     document.getElementById('pv-team').textContent = team ? 'Team: ' + team : 'Team: \u00A0';
     document.getElementById('pv-destination').textContent = dest || '\u00A0';
 
