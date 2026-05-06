@@ -336,7 +336,7 @@
       <label for="teamSearch">Team Name <span class="req">*</span></label>
       <div class="char-count">Select GEN — General if items do not belong to a specific team</div>
       <div class="search-dropdown" id="teamDropdown">
-        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-expanded="false" aria-controls="teamList" aria-activedescendant="">
+        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList" aria-activedescendant="">
         <ul class="dropdown-list" id="teamList" role="listbox"></ul>
       </div>
     </div>
@@ -346,7 +346,7 @@
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
       <div class="char-count">Old site equivalent names shown in brackets</div>
       <div class="search-dropdown" id="destDropdown">
-        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-expanded="false" aria-controls="destList" aria-activedescendant="">
+        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList" aria-activedescendant="">
         <ul class="dropdown-list" id="destList" role="listbox"></ul>
       </div>
     </div>
@@ -520,6 +520,8 @@
       }
     } else if (e.key === 'Escape') {
       teamList.classList.remove('open');
+      teamSearch.setAttribute('aria-expanded', 'false');
+      teamSearch.setAttribute('aria-activedescendant', '');
     }
   });
 
@@ -624,6 +626,8 @@
       }
     } else if (e.key === 'Escape') {
       destList.classList.remove('open');
+      destSearch.setAttribute('aria-expanded', 'false');
+      destSearch.setAttribute('aria-activedescendant', '');
     }
   });
 
@@ -710,8 +714,11 @@
     // Populate print label — temporarily show it so text fitting can measure widths
     const printLabel = document.getElementById('print-label');
     printLabel.style.display = 'flex';
-    printLabel.style.position = 'absolute';
-    printLabel.style.left = '-9999px';
+    printLabel.style.position = 'fixed';
+    printLabel.style.left = '0';
+    printLabel.style.top = '0';
+    printLabel.style.visibility = 'hidden';
+    printLabel.style.pointerEvents = 'none';
 
     document.getElementById('pr-productGroup').textContent = pg;
     fitRow1Text(document.getElementById('pr-productGroup'));
@@ -728,6 +735,9 @@
     printLabel.style.display = '';
     printLabel.style.position = '';
     printLabel.style.left = '';
+    printLabel.style.top = '';
+    printLabel.style.visibility = '';
+    printLabel.style.pointerEvents = '';
 
     window.print();
   }
