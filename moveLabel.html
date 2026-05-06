@@ -521,8 +521,11 @@
       updateHighlight(items);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (highlightedIndex >= 0 && highlightedIndex < items.length) {
-        const li = items[highlightedIndex];
+      const li =
+        highlightedIndex >= 0 && highlightedIndex < items.length
+        ? items[highlightedIndex]
+        : items[0];
+      if (li) {
         selectTeam(li.dataset.code, li.dataset.name);
       }
     } else if (e.key === 'Escape') {
@@ -632,8 +635,11 @@
       updateDestHighlight(items);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (destHighlightedIndex >= 0 && destHighlightedIndex < items.length) {
-        const li = items[destHighlightedIndex];
+      const li =
+        destHighlightedIndex >= 0 && destHighlightedIndex < items.length
+        ? items[destHighlightedIndex]
+        : items[0];
+      if (li) {
         selectDest(li.dataset.code, li.dataset.name);
       }
     } else if (e.key === 'Escape') {
