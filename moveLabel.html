@@ -141,6 +141,8 @@
 
   .btn-print:hover { background: #333; }
 
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
   /* ── Preview ── */
   .preview-wrapper {
     width: 675px;
@@ -317,7 +319,7 @@
     <!-- Product Development Group -->
     <div class="field-group">
       <label for="productGroup">Product Development Group <span class="req">*</span></label>
-      <select id="productGroup">
+      <select id="productGroup" aria-required="true">
         <option value="">— Select —</option>
         <option>Engineering - Mechanical</option>
         <option>Engineering - Electrical</option>
@@ -334,27 +336,29 @@
     <!-- Team Name (searchable) -->
     <div class="field-group">
       <label for="teamSearch">Team Name <span class="req">*</span></label>
-      <div class="char-count">Select GEN — General if items do not belong to a specific team</div>
+      <div class="char-count" id="teamHint">Select GEN — General if items do not belong to a specific team</div>
       <div class="search-dropdown" id="teamDropdown">
-        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList">
-        <ul class="dropdown-list" id="teamList" role="listbox"></ul>
+        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList" aria-required="true" aria-describedby="teamHint teamStatus">
+        <ul class="dropdown-list" id="teamList" role="listbox" aria-label="Team Name options"></ul>
       </div>
+      <span class="sr-only" aria-live="polite" id="teamStatus"></span>
     </div>
 
     <!-- Destination Room/Lab (searchable) -->
     <div class="field-group">
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
-      <div class="char-count">Old site equivalent names shown in brackets</div>
+      <div class="char-count" id="destHint">Old site equivalent names shown in brackets</div>
       <div class="search-dropdown" id="destDropdown">
-        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList">
-        <ul class="dropdown-list" id="destList" role="listbox"></ul>
+        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList" aria-required="true" aria-describedby="destHint destStatus">
+        <ul class="dropdown-list" id="destList" role="listbox" aria-label="Destination Room/Lab options"></ul>
       </div>
+      <span class="sr-only" aria-live="polite" id="destStatus"></span>
     </div>
 
     <!-- Handling Category -->
     <div class="field-group">
       <label for="handling">Handling Category <span class="req">*</span></label>
-      <select id="handling">
+      <select id="handling" aria-required="true">
         <option value="">— Select —</option>
         <option>General</option>
         <option>Fragile</option>
@@ -365,22 +369,22 @@
     <!-- Item Description -->
     <div class="field-group">
       <label for="itemDesc">Item Description <span class="req">*</span></label>
-      <textarea id="itemDesc" maxlength="150"></textarea>
-      <div class="char-count"><span id="descCount">150</span> characters remaining</div>
+      <textarea id="itemDesc" maxlength="150" aria-required="true" aria-describedby="descCountRegion"></textarea>
+      <div class="char-count" id="descCountRegion" aria-live="polite"><span id="descCount">150</span> characters remaining</div>
     </div>
 
     <!-- Original Location -->
     <div class="field-group">
       <label for="origLocation">Original Location at Old Site</label>
-      <input type="text" id="origLocation" maxlength="70">
-      <div class="char-count"><span id="origCount">70</span> characters remaining</div>
+      <input type="text" id="origLocation" maxlength="70" aria-describedby="origCountRegion">
+      <div class="char-count" id="origCountRegion" aria-live="polite"><span id="origCount">70</span> characters remaining</div>
     </div>
 
     <button type="button" class="btn-print" id="printBtn">Print</button>
   </div>
 
   <!-- Live Preview -->
-  <div class="preview-wrapper">
+  <div class="preview-wrapper" aria-hidden="true">
     <div class="label" id="preview-label">
       <div class="label-row1"><div class="value" id="pv-productGroup">&nbsp;</div></div>
       <div class="label-row2"><div class="value" id="pv-team">Team:&nbsp;</div></div>
@@ -469,6 +473,7 @@
     });
     highlightedIndex = -1;
     teamSearch.removeAttribute('aria-activedescendant');
+    document.getElementById('teamStatus').textContent = filtered.length ? filtered.length + ' results available' : 'No results found';
   }
 
   function selectTeam(code, name) {
@@ -579,6 +584,7 @@
     });
     destHighlightedIndex = -1;
     destSearch.removeAttribute('aria-activedescendant');
+    document.getElementById('destStatus').textContent = filtered.length ? filtered.length + ' results available' : 'No results found';
   }
 
   function selectDest(code, name) {
