@@ -1,41 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Move Label</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Aptos Display', 'Aptos', Calibri, sans-serif;
+    background: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .page-layout {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  /* ── Form ── */
+  .form-container {
+    width: 600px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  .form-container h1 {
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .legend {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+
+  .legend span { color: red; }
+
+  .field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .field-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    font-size: 0.95rem;
+  }
+
+  .field-group label .req { color: red; }
+
+  .field-group select,
+  .field-group input[type="text"],
+  .field-group textarea {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.95rem;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+
+  .field-group textarea {
+    resize: none;
+    line-height: 1.4;
+    height: calc(1.4em * 4 + 1rem + 2px);
+    overflow-y: auto;
+  }
+
+  .char-count {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.2rem;
+    text-align: right;
+  }
+
+  /* Searchable dropdown */
+  .search-dropdown {
+    position: relative;
+  }
+
+  .search-dropdown input[type="text"] {
+    width: 100%;
+  }
+
+  .search-dropdown .dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #bbb;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    z-index: 100;
+    list-style: none;
+  }
+
+  .search-dropdown .dropdown-list.open {
+    display: block;
+  }
+
+  .search-dropdown .dropdown-list li {
+    padding: 0.45rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+
+  .search-dropdown .dropdown-list li:hover,
+  .search-dropdown .dropdown-list li.highlighted {
+    background: #e0e7ff;
+  }
+
+  .btn-print {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    background: #000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+    font-family: inherit;
+  }
+
+  .btn-print:hover { background: #333; }
+
+  /* ── Preview ── */
+  .preview-wrapper {
+    width: 675px;
+    height: 477px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    flex-shrink: 0;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .preview-wrapper .label {
+    transform: scale(0.6);
+    transform-origin: top left;
+  }
+
+  /* ── Label (shared: preview + print) ── */
+  .label {
+    width: 297mm;
+    height: 210mm;
+    padding: 1.27cm;
+    font-family: 'Aptos Display', 'Aptos', Calibri, sans-serif;
+    font-variant-ligatures: none;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    overflow: hidden;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .label-row1 {
+    background: #000;
+    border: 1px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    overflow: hidden;
+  }
+
+  .label-row1 .value {
+    color: #fff;
+    font-size: 48pt;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 48pt;
+    height: 48pt;
+    overflow: hidden;
+  }
+
+  .label-row2 {
+    background: #ddd;
+    border: 1px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+  }
+
+  .label-row2 .value {
+    color: #000;
+    font-size: 24pt;
+    font-weight: bold;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .label-row3 {
+    flex: 2;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border: 1px solid #000;
+  }
+
+  .label-row3 .cell-left {
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #000;
+  }
+
+  .label-row3 .cell-right {
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    min-width: 280px;
+  }
+
+  .label-row4 {
+    flex: 2;
+    border: 1px solid #000;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .label-row5 {
+    flex: 1;
+    border: 1px solid #000;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .label .cell-header {
+    font-size: 16pt;
+    font-weight: normal;
+    flex-shrink: 0;
+  }
+
+  .label .cell-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-weight: bold;
+  }
+
+  .label-row3 .cell-left .cell-value { font-size: 40pt; }
+  .label-row3 .cell-right .cell-value { font-size: 48pt; }
+  .label-row4 .cell-value { font-size: 26pt; }
+  .label-row5 .cell-value { font-size: 20pt; }
+
+  .handling-general { color: #000; }
+  .handling-fragile { color: red; }
+  .handling-heavy { color: red; }
+
+  /* ── Print label (hidden on screen, shown on print) ── */
+  #print-label { display: none; }
+
+  /* ── Print rules ── */
+  @media print {
+    @page {
+      size: A4 landscape;
       margin: 0;
-      background-color: #f0f4f8;
     }
-    .card {
-      text-align: center;
-      background: #ffffff;
-      padding: 2rem 3rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    body {
+      background: #fff;
+      padding: 0;
+      display: block;
     }
-    h1 {
-      color: #24292e;
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+
+    .page-layout,
+    .form-container,
+    .preview-wrapper {
+      display: none !important;
     }
-    p {
-      color: #586069;
-      font-size: 1.1rem;
+
+    #print-label {
+      display: flex !important;
     }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>Hello World! 👋</h1>
-    <p>Welcome to my GitHub Pages sample site.</p>
+
+<div class="page-layout">
+  <!-- Form -->
+  <div class="form-container">
+    <h1>Move Label</h1>
+    <p class="legend"><span>*</span> Required field</p>
+
+    <!-- Product Development Group -->
+    <div class="field-group">
+      <label for="productGroup">Product Development Group <span class="req">*</span></label>
+      <select id="productGroup">
+        <option value="">— Select —</option>
+        <option>Engineering - Mechanical</option>
+        <option>Engineering - Electrical</option>
+        <option>Engineering - Software</option>
+        <option>Engineering - Materials</option>
+        <option>Engineering - General</option>
+        <option>Engineering - Design</option>
+        <option>Engineering - Testing</option>
+        <option>Engineering - Manufacturing</option>
+        <option>Engineering - Quality</option>
+      </select>
+    </div>
+
+    <!-- Team Name (searchable) -->
+    <div class="field-group">
+      <label for="teamSearch">Team Name <span class="req">*</span></label>
+      <div class="char-count">Select GEN — General if items do not belong to a specific team</div>
+      <div class="search-dropdown" id="teamDropdown">
+        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…">
+        <ul class="dropdown-list" id="teamList"></ul>
+      </div>
+    </div>
+
+    <!-- Destination Room/Lab (searchable) -->
+    <div class="field-group">
+      <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
+      <div class="char-count">Old site equivalent names shown in brackets</div>
+      <div class="search-dropdown" id="destDropdown">
+        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…">
+        <ul class="dropdown-list" id="destList"></ul>
+      </div>
+    </div>
+
+    <!-- Handling Category -->
+    <div class="field-group">
+      <label for="handling">Handling Category <span class="req">*</span></label>
+      <select id="handling">
+        <option value="">— Select —</option>
+        <option>General</option>
+        <option>Fragile</option>
+        <option>Heavy</option>
+      </select>
+    </div>
+
+    <!-- Item Description -->
+    <div class="field-group">
+      <label for="itemDesc">Item Description <span class="req">*</span></label>
+      <textarea id="itemDesc" maxlength="150"></textarea>
+      <div class="char-count"><span id="descCount">150</span> characters remaining</div>
+    </div>
+
+    <!-- Original Location -->
+    <div class="field-group">
+      <label for="origLocation">Original Location at Old Site</label>
+      <input type="text" id="origLocation" maxlength="70">
+      <div class="char-count"><span id="origCount">70</span> characters remaining</div>
+    </div>
+
+    <button class="btn-print" onclick="handlePrint()">Print</button>
   </div>
+
+  <!-- Live Preview -->
+  <div class="preview-wrapper">
+    <div class="label" id="preview-label">
+      <div class="label-row1"><div class="value" id="pv-productGroup">&nbsp;</div></div>
+      <div class="label-row2"><div class="value" id="pv-team">Team:&nbsp;</div></div>
+      <div class="label-row3">
+        <div class="cell-left">
+          <div class="cell-header">Destination Room/Lab</div>
+          <div class="cell-value" id="pv-destination">&nbsp;</div>
+        </div>
+        <div class="cell-right">
+          <div class="cell-header">Handling Category</div>
+          <div class="cell-value" id="pv-handling">&nbsp;</div>
+        </div>
+      </div>
+      <div class="label-row4">
+        <div class="cell-header">Item Description</div>
+        <div class="cell-value" id="pv-itemDesc">&nbsp;</div>
+      </div>
+      <div class="label-row5">
+        <div class="cell-header">Original Location at Old Site</div>
+        <div class="cell-value" id="pv-origLocation">&nbsp;</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Print-only label (hidden on screen, shown when printing) -->
+<div class="label" id="print-label">
+  <div class="label-row1"><div class="value" id="pr-productGroup"></div></div>
+  <div class="label-row2"><div class="value" id="pr-team"></div></div>
+  <div class="label-row3">
+    <div class="cell-left">
+      <div class="cell-header">Destination Room/Lab</div>
+      <div class="cell-value" id="pr-destination"></div>
+    </div>
+    <div class="cell-right">
+      <div class="cell-header">Handling Category</div>
+      <div class="cell-value" id="pr-handling"></div>
+    </div>
+  </div>
+  <div class="label-row4">
+    <div class="cell-header">Item Description</div>
+    <div class="cell-value" id="pr-itemDesc"></div>
+  </div>
+  <div class="label-row5">
+    <div class="cell-header">Original Location at Old Site</div>
+    <div class="cell-value" id="pr-origLocation"></div>
+  </div>
+</div>
+
+<script>
+  // ── Team list data ──
+  const teams = [
+    ["GEN","General"],
+    ["MEC","Mechanical Engineering"],
+    ["ELE","Electronics"],
+    ["SWE","Software Engineering"],
+    ["QAR","Quality and Reliability"]
+  ];
+
+  // ── Searchable Team Dropdown ──
+  const teamSearch = document.getElementById('teamSearch');
+  const teamList = document.getElementById('teamList');
+  let selectedTeam = '';
+  let highlightedIndex = -1;
+
+  function renderTeamOptions(filter) {
+    const q = filter.toLowerCase();
+    const filtered = teams.filter(t =>
+      t[0].toLowerCase().includes(q) || t[1].toLowerCase().includes(q)
+    );
+    teamList.innerHTML = '';
+    filtered.forEach((t, i) => {
+      const li = document.createElement('li');
+      li.textContent = t[0] + ' — ' + t[1];
+      li.dataset.code = t[0];
+      li.dataset.name = t[1];
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        selectTeam(t[0], t[1]);
+      });
+      teamList.appendChild(li);
+    });
+    highlightedIndex = -1;
+  }
+
+  function selectTeam(code, name) {
+    selectedTeam = code + ' — ' + name;
+    teamSearch.value = selectedTeam;
+    teamList.classList.remove('open');
+    updatePreview();
+  }
+
+  teamSearch.addEventListener('focus', () => {
+    renderTeamOptions(teamSearch.value);
+    teamList.classList.add('open');
+  });
+
+  teamSearch.addEventListener('input', () => {
+    selectedTeam = '';
+    renderTeamOptions(teamSearch.value);
+    teamList.classList.add('open');
+    updatePreview();
+  });
+
+  teamSearch.addEventListener('blur', () => {
+    teamList.classList.remove('open');
+    if (!selectedTeam) {
+      teamSearch.value = '';
+      updatePreview();
+    }
+  });
+
+  teamSearch.addEventListener('keydown', e => {
+    const items = teamList.querySelectorAll('li');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+      updateHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      updateHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < items.length) {
+        const li = items[highlightedIndex];
+        selectTeam(li.dataset.code, li.dataset.name);
+      }
+    } else if (e.key === 'Escape') {
+      teamList.classList.remove('open');
+    }
+  });
+
+  function updateHighlight(items) {
+    items.forEach((li, i) => {
+      li.classList.toggle('highlighted', i === highlightedIndex);
+      if (i === highlightedIndex) li.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  // ── Destination Room/Lab data: [code, new site name, old site equivalent(s)] ──
+  const destinations = [
+    ["B1.G.01","Performance Lab","Test Lab A, Test Lab B"],
+    ["B1.G.03","Electronics Lab","EMC Room, Hardware Lab"],
+    ["B1.1.01","Materials Lab","Chemistry Lab"],
+    ["B1.1.05","Workshop","Machine Room"],
+    ["Bay A-B","Flexible Test Area","North Lab"]
+  ];
+
+  // ── Searchable Destination Dropdown ──
+  const destSearch = document.getElementById('destSearch');
+  const destList = document.getElementById('destList');
+  let selectedDest = '';
+  let destHighlightedIndex = -1;
+
+  function renderDestOptions(filter) {
+    const q = filter.toLowerCase();
+    const filtered = destinations.filter(d =>
+      d[0].toLowerCase().includes(q) || d[1].toLowerCase().includes(q) || d[2].toLowerCase().includes(q)
+    );
+    destList.innerHTML = '';
+    filtered.forEach((d, i) => {
+      const li = document.createElement('li');
+      let label = d[0] ? d[0] + ' — ' + d[1] : d[1];
+      if (d[2]) label += ' (' + d[2] + ')';
+      li.textContent = label;
+      li.dataset.code = d[0];
+      li.dataset.name = d[1];
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        selectDest(d[0], d[1]);
+      });
+      destList.appendChild(li);
+    });
+    destHighlightedIndex = -1;
+  }
+
+  function selectDest(code, name) {
+    selectedDest = code ? code + ' — ' + name : name;
+    destSearch.value = selectedDest;
+    destList.classList.remove('open');
+    updatePreview();
+  }
+
+  destSearch.addEventListener('focus', () => {
+    renderDestOptions(destSearch.value);
+    destList.classList.add('open');
+  });
+
+  destSearch.addEventListener('input', () => {
+    selectedDest = '';
+    renderDestOptions(destSearch.value);
+    destList.classList.add('open');
+    updatePreview();
+  });
+
+  destSearch.addEventListener('blur', () => {
+    destList.classList.remove('open');
+    if (!selectedDest) {
+      destSearch.value = '';
+      updatePreview();
+    }
+  });
+
+  destSearch.addEventListener('keydown', e => {
+    const items = destList.querySelectorAll('li');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      destHighlightedIndex = Math.min(destHighlightedIndex + 1, items.length - 1);
+      updateDestHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      destHighlightedIndex = Math.max(destHighlightedIndex - 1, 0);
+      updateDestHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (destHighlightedIndex >= 0 && destHighlightedIndex < items.length) {
+        const li = items[destHighlightedIndex];
+        selectDest(li.dataset.code, li.dataset.name);
+      }
+    } else if (e.key === 'Escape') {
+      destList.classList.remove('open');
+    }
+  });
+
+  function updateDestHighlight(items) {
+    items.forEach((li, i) => {
+      li.classList.toggle('highlighted', i === destHighlightedIndex);
+      if (i === destHighlightedIndex) li.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  // ── Character counts ──
+  const itemDesc = document.getElementById('itemDesc');
+  const descCount = document.getElementById('descCount');
+  const origLocation = document.getElementById('origLocation');
+  const origCount = document.getElementById('origCount');
+
+  itemDesc.addEventListener('input', () => {
+    descCount.textContent = 150 - itemDesc.value.length;
+    updatePreview();
+  });
+  origLocation.addEventListener('input', () => {
+    origCount.textContent = 70 - origLocation.value.length;
+    updatePreview();
+  });
+
+  // Update preview on any form change
+  document.getElementById('productGroup').addEventListener('change', updatePreview);
+  document.getElementById('handling').addEventListener('change', updatePreview);
+
+  // ── Live Preview ──
+  function getHandlingClass(val) {
+    if (val === 'Fragile') return 'handling-fragile';
+    if (val === 'Heavy') return 'handling-heavy';
+    return 'handling-general';
+  }
+
+  function updatePreview() {
+    const pg = document.getElementById('productGroup').value;
+    const team = selectedTeam;
+    const dest = selectedDest;
+    const hand = document.getElementById('handling').value;
+    const desc = itemDesc.value;
+    const orig = origLocation.value;
+
+    document.getElementById('pv-productGroup').textContent = pg || '\u00A0';
+    fitRow1Text(document.getElementById('pv-productGroup'));
+    document.getElementById('pv-team').textContent = team ? 'Team: ' + team : 'Team: \u00A0';
+    document.getElementById('pv-destination').textContent = dest || '\u00A0';
+
+    const pvHandling = document.getElementById('pv-handling');
+    pvHandling.textContent = hand || '\u00A0';
+    pvHandling.className = 'cell-value ' + getHandlingClass(hand);
+
+    document.getElementById('pv-itemDesc').textContent = desc || '\u00A0';
+    document.getElementById('pv-origLocation').textContent = orig || '\u00A0';
+  }
+
+  // ── Print ──
+  function handlePrint() {
+    const pg = document.getElementById('productGroup').value;
+    const team = selectedTeam;
+    const dest = selectedDest;
+    const hand = document.getElementById('handling').value;
+    const desc = itemDesc.value.trim();
+
+    // Validate required fields
+    const missing = [];
+    if (!pg) missing.push('Product Development Group');
+    if (!team) missing.push('Team Name');
+    if (!dest) missing.push('Destination Room/Lab');
+    if (!hand) missing.push('Handling Category');
+    if (!desc) missing.push('Item Description');
+
+    if (missing.length) {
+      alert('Please fill in the following required fields:\n\n• ' + missing.join('\n• '));
+      return;
+    }
+
+    const orig = origLocation.value.trim();
+
+    // Populate print label — temporarily show it so text fitting can measure widths
+    const printLabel = document.getElementById('print-label');
+    printLabel.style.display = 'flex';
+    printLabel.style.position = 'absolute';
+    printLabel.style.left = '-9999px';
+
+    document.getElementById('pr-productGroup').textContent = pg;
+    fitRow1Text(document.getElementById('pr-productGroup'));
+    document.getElementById('pr-team').textContent = 'Team: ' + team;
+    document.getElementById('pr-destination').textContent = dest;
+
+    const prHandling = document.getElementById('pr-handling');
+    prHandling.textContent = hand;
+    prHandling.className = 'cell-value ' + getHandlingClass(hand);
+
+    document.getElementById('pr-itemDesc').textContent = desc;
+    document.getElementById('pr-origLocation').textContent = orig;
+
+    printLabel.style.display = '';
+    printLabel.style.position = '';
+    printLabel.style.left = '';
+
+    window.print();
+  }
+
+  // Auto-fit Row 1 text to prevent wrapping
+  function fitRow1Text(el) {
+    el.style.fontSize = '48pt';
+    const row = el.closest('.label-row1');
+    const availableWidth = row.clientWidth - parseFloat(getComputedStyle(row).paddingLeft) - parseFloat(getComputedStyle(row).paddingRight);
+    let size = 48;
+    while (el.scrollWidth > availableWidth && size > 16) {
+      size -= 1;
+      el.style.fontSize = size + 'pt';
+    }
+  }
+
+  // Initialise preview
+  updatePreview();
+</script>
 </body>
 </html>
