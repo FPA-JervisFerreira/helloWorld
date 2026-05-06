@@ -376,7 +376,7 @@
       <div class="char-count"><span id="origCount">70</span> characters remaining</div>
     </div>
 
-    <button type="button" class="btn-print" onclick="handlePrint()">Print</button>
+    <button type="button" class="btn-print" id="printBtn">Print</button>
   </div>
 
   <!-- Live Preview -->
@@ -527,8 +527,10 @@
 
   function updateHighlight(items) {
     items.forEach((li, i) => {
-      li.classList.toggle('highlighted', i === highlightedIndex);
-      if (i === highlightedIndex) {
+      const isActive = i === highlightedIndex;
+      li.classList.toggle('highlighted', isActive);
+      li.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (isActive) {
         li.scrollIntoView({ block: 'nearest' });
         teamSearch.setAttribute('aria-activedescendant', li.id);
       }
@@ -553,7 +555,7 @@
   function renderDestOptions(filter) {
     const q = filter.toLowerCase();
     const filtered = destinations.filter(d =>
-      d[0].toLowerCase().includes(q) || d[1].toLowerCase().includes(q) || d[2].toLowerCase().includes(q)
+      (d[0] || '').toLowerCase().includes(q) || d[1].toLowerCase().includes(q) || (d[2] || '').toLowerCase().includes(q)
     );
     destList.innerHTML = '';
     filtered.forEach((d, i) => {
@@ -633,8 +635,10 @@
 
   function updateDestHighlight(items) {
     items.forEach((li, i) => {
-      li.classList.toggle('highlighted', i === destHighlightedIndex);
-      if (i === destHighlightedIndex) {
+      const isActive = i === destHighlightedIndex;
+      li.classList.toggle('highlighted', isActive);
+      li.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (isActive) {
         li.scrollIntoView({ block: 'nearest' });
         destSearch.setAttribute('aria-activedescendant', li.id);
       }
@@ -761,6 +765,8 @@
 
   // Initialise preview
   updatePreview();
+
+  document.getElementById('printBtn').addEventListener('click', handlePrint);
 </script>
 </body>
 </html>
