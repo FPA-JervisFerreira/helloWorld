@@ -476,6 +476,7 @@
     teamSearch.value = selectedTeam;
     teamList.classList.remove('open');
     teamSearch.setAttribute('aria-expanded', 'false');
+    teamSearch.removeAttribute('aria-activedescendant');
     updatePreview();
   }
 
@@ -496,6 +497,7 @@
   teamSearch.addEventListener('blur', () => {
     teamList.classList.remove('open');
     teamSearch.setAttribute('aria-expanded', 'false');
+    teamSearch.removeAttribute('aria-activedescendant');
     if (!selectedTeam) {
       teamSearch.value = '';
       updatePreview();
@@ -584,6 +586,7 @@
     destSearch.value = selectedDest;
     destList.classList.remove('open');
     destSearch.setAttribute('aria-expanded', 'false');
+    destSearch.removeAttribute('aria-activedescendant');
     updatePreview();
   }
 
@@ -604,6 +607,7 @@
   destSearch.addEventListener('blur', () => {
     destList.classList.remove('open');
     destSearch.setAttribute('aria-expanded', 'false');
+    destSearch.removeAttribute('aria-activedescendant');
     if (!selectedDest) {
       destSearch.value = '';
       updatePreview();
