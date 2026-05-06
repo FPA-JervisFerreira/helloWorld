@@ -336,8 +336,8 @@
       <label for="teamSearch">Team Name <span class="req">*</span></label>
       <div class="char-count">Select GEN — General if items do not belong to a specific team</div>
       <div class="search-dropdown" id="teamDropdown">
-        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…">
-        <ul class="dropdown-list" id="teamList"></ul>
+        <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-expanded="false" aria-controls="teamList" aria-activedescendant="">
+        <ul class="dropdown-list" id="teamList" role="listbox"></ul>
       </div>
     </div>
 
@@ -346,8 +346,8 @@
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
       <div class="char-count">Old site equivalent names shown in brackets</div>
       <div class="search-dropdown" id="destDropdown">
-        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…">
-        <ul class="dropdown-list" id="destList"></ul>
+        <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-expanded="false" aria-controls="destList" aria-activedescendant="">
+        <ul class="dropdown-list" id="destList" role="listbox"></ul>
       </div>
     </div>
 
@@ -457,36 +457,45 @@
       li.textContent = t[0] + ' — ' + t[1];
       li.dataset.code = t[0];
       li.dataset.name = t[1];
-      li.addEventListener('mousedown', e => {
+      li.setAttribute('role', 'option');
+      li.id = 'team-option-' + i;
+      li.addEventListener('pointerdown', e => {
         e.preventDefault();
+      });
+      li.addEventListener('click', () => {
         selectTeam(t[0], t[1]);
       });
       teamList.appendChild(li);
     });
     highlightedIndex = -1;
+    teamSearch.setAttribute('aria-activedescendant', '');
   }
 
   function selectTeam(code, name) {
     selectedTeam = code + ' — ' + name;
     teamSearch.value = selectedTeam;
     teamList.classList.remove('open');
+    teamSearch.setAttribute('aria-expanded', 'false');
     updatePreview();
   }
 
   teamSearch.addEventListener('focus', () => {
     renderTeamOptions(teamSearch.value);
     teamList.classList.add('open');
+    teamSearch.setAttribute('aria-expanded', 'true');
   });
 
   teamSearch.addEventListener('input', () => {
     selectedTeam = '';
     renderTeamOptions(teamSearch.value);
     teamList.classList.add('open');
+    teamSearch.setAttribute('aria-expanded', 'true');
     updatePreview();
   });
 
   teamSearch.addEventListener('blur', () => {
     teamList.classList.remove('open');
+    teamSearch.setAttribute('aria-expanded', 'false');
     if (!selectedTeam) {
       teamSearch.value = '';
       updatePreview();
@@ -517,7 +526,10 @@
   function updateHighlight(items) {
     items.forEach((li, i) => {
       li.classList.toggle('highlighted', i === highlightedIndex);
-      if (i === highlightedIndex) li.scrollIntoView({ block: 'nearest' });
+      if (i === highlightedIndex) {
+        li.scrollIntoView({ block: 'nearest' });
+        teamSearch.setAttribute('aria-activedescendant', li.id);
+      }
     });
   }
 
@@ -549,36 +561,45 @@
       li.textContent = label;
       li.dataset.code = d[0];
       li.dataset.name = d[1];
-      li.addEventListener('mousedown', e => {
+      li.setAttribute('role', 'option');
+      li.id = 'dest-option-' + i;
+      li.addEventListener('pointerdown', e => {
         e.preventDefault();
+      });
+      li.addEventListener('click', () => {
         selectDest(d[0], d[1]);
       });
       destList.appendChild(li);
     });
     destHighlightedIndex = -1;
+    destSearch.setAttribute('aria-activedescendant', '');
   }
 
   function selectDest(code, name) {
     selectedDest = code ? code + ' — ' + name : name;
     destSearch.value = selectedDest;
     destList.classList.remove('open');
+    destSearch.setAttribute('aria-expanded', 'false');
     updatePreview();
   }
 
   destSearch.addEventListener('focus', () => {
     renderDestOptions(destSearch.value);
     destList.classList.add('open');
+    destSearch.setAttribute('aria-expanded', 'true');
   });
 
   destSearch.addEventListener('input', () => {
     selectedDest = '';
     renderDestOptions(destSearch.value);
     destList.classList.add('open');
+    destSearch.setAttribute('aria-expanded', 'true');
     updatePreview();
   });
 
   destSearch.addEventListener('blur', () => {
     destList.classList.remove('open');
+    destSearch.setAttribute('aria-expanded', 'false');
     if (!selectedDest) {
       destSearch.value = '';
       updatePreview();
@@ -609,7 +630,10 @@
   function updateDestHighlight(items) {
     items.forEach((li, i) => {
       li.classList.toggle('highlighted', i === destHighlightedIndex);
-      if (i === destHighlightedIndex) li.scrollIntoView({ block: 'nearest' });
+      if (i === destHighlightedIndex) {
+        li.scrollIntoView({ block: 'nearest' });
+        destSearch.setAttribute('aria-activedescendant', li.id);
+      }
     });
   }
 
