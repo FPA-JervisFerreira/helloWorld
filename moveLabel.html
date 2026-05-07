@@ -486,6 +486,7 @@
     }
 
     inputEl.addEventListener('focus', () => {
+      clearTimeout(blurTimeout);
       render(inputEl.value);
       listEl.classList.add('open');
       inputEl.setAttribute('aria-expanded', 'true');
