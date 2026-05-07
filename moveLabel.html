@@ -322,20 +322,22 @@
     <h1>Move Label</h1>
     <p class="legend"><span>*</span> Required field</p>
 
-    <!-- Product Development Group -->
+    <!-- Group -->
     <div class="field-group">
-      <label for="productGroup">Product Development Group <span class="req">*</span></label>
-      <select id="productGroup" aria-required="true">
+      <label for="productGroup">Group <span class="req">*</span></label>
+      <div class="field-hint" id="groupHint">Select General if items do not belong to a specific group</div>
+      <select id="productGroup" aria-required="true" aria-describedby="groupHint">
         <option value="">— Select —</option>
-        <option>Engineering - Mechanical</option>
+        <option>Ecosystems</option>
         <option>Engineering - Electrical</option>
-        <option>Engineering - Software</option>
-        <option>Engineering - Materials</option>
         <option>Engineering - General</option>
-        <option>Engineering - Design</option>
-        <option>Engineering - Testing</option>
         <option>Engineering - Manufacturing</option>
+        <option>Engineering - Materials</option>
+        <option>Engineering - Mechanical</option>
         <option>Engineering - Quality</option>
+        <option>Engineering - Software</option>
+        <option>Engineering - Testing</option>
+        <option>Industrial Design</option>
       </select>
     </div>
 
@@ -343,6 +345,7 @@
     <div class="field-group">
       <label for="teamSearch">Team Name <span class="req">*</span></label>
       <div class="field-hint" id="teamHint">Select GEN — General if items do not belong to a specific team</div>
+      <div class="field-hint">Only options from the list are valid</div>
       <div class="search-dropdown" id="teamDropdownWrap">
         <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList" aria-required="true" aria-describedby="teamHint teamStatus">
         <ul class="dropdown-list" id="teamList" role="listbox" aria-label="Team Name options"></ul>
@@ -354,6 +357,7 @@
     <div class="field-group">
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
       <div class="field-hint" id="destHint">Old site equivalent names shown in brackets</div>
+      <div class="field-hint">Only options from the list are valid</div>
       <div class="search-dropdown" id="destDropdownWrap">
         <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList" aria-required="true" aria-describedby="destHint destStatus">
         <ul class="dropdown-list" id="destList" role="listbox" aria-label="Destination Room/Lab options"></ul>
@@ -690,7 +694,7 @@
 
     // Validate required fields
     const missing = [];
-    if (!pg) missing.push('Product Development Group');
+    if (!pg) missing.push('Group');
     if (!team) missing.push('Team Name');
     if (!dest) missing.push('Destination Room/Lab');
     if (!hand) missing.push('Handling Category');
