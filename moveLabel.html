@@ -84,6 +84,12 @@
     text-align: right;
   }
 
+  .field-hint {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.3rem;
+  }
+
   /* Searchable dropdown */
   .search-dropdown {
     position: relative;
@@ -336,8 +342,8 @@
     <!-- Team Name (searchable) -->
     <div class="field-group">
       <label for="teamSearch">Team Name <span class="req">*</span></label>
-      <div class="char-count" id="teamHint">Select GEN — General if items do not belong to a specific team</div>
-      <div class="search-dropdown" id="teamDropdown">
+      <div class="field-hint" id="teamHint">Select GEN — General if items do not belong to a specific team</div>
+      <div class="search-dropdown" id="teamDropdownWrap">
         <input type="text" id="teamSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="teamList" aria-required="true" aria-describedby="teamHint teamStatus">
         <ul class="dropdown-list" id="teamList" role="listbox" aria-label="Team Name options"></ul>
       </div>
@@ -347,8 +353,8 @@
     <!-- Destination Room/Lab (searchable) -->
     <div class="field-group">
       <label for="destSearch">Destination Room/Lab <span class="req">*</span></label>
-      <div class="char-count" id="destHint">Old site equivalent names shown in brackets</div>
-      <div class="search-dropdown" id="destDropdown">
+      <div class="field-hint" id="destHint">Old site equivalent names shown in brackets</div>
+      <div class="search-dropdown" id="destDropdownWrap">
         <input type="text" id="destSearch" autocomplete="off" placeholder="Type to search…" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="destList" aria-required="true" aria-describedby="destHint destStatus">
         <ul class="dropdown-list" id="destList" role="listbox" aria-label="Destination Room/Lab options"></ul>
       </div>
@@ -515,6 +521,17 @@
     inputEl.addEventListener('keydown', e => {
       const isOpen = listEl.classList.contains('open');
       const items = listEl.querySelectorAll('li');
+      if (e.key === 'Tab') {
+        clearTimeout(blurTimeout);
+        listEl.classList.remove('open');
+        inputEl.setAttribute('aria-expanded', 'false');
+        inputEl.removeAttribute('aria-activedescendant');
+        if (!selectedValue) {
+          inputEl.value = '';
+          onSelect(null);
+        }
+        return;
+      }
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (!isOpen) {
@@ -714,19 +731,26 @@
     printLabel.style.visibility = '';
     printLabel.style.pointerEvents = '';
 
-    window.print();
+    requestAnimationFrame(() => window.print());
   }
 
-  // Auto-fit Row 1 text to prevent wrapping
+  // Auto-fit Row 1 text using binary search to minimise reflows
   function fitRow1Text(el) {
     el.style.fontSize = '48pt';
     const row = el.closest('.label-row1');
     const availableWidth = row.clientWidth - parseFloat(getComputedStyle(row).paddingLeft) - parseFloat(getComputedStyle(row).paddingRight);
-    let size = 48;
-    while (el.scrollWidth > availableWidth && size > 16) {
-      size -= 1;
-      el.style.fontSize = size + 'pt';
+    if (el.scrollWidth <= availableWidth) return;
+    let lo = 16, hi = 48;
+    while (hi - lo > 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      el.style.fontSize = mid + 'pt';
+      if (el.scrollWidth > availableWidth) {
+        hi = mid;
+      } else {
+        lo = mid;
+      }
     }
+    el.style.fontSize = lo + 'pt';
   }
 
   // Initialise preview
