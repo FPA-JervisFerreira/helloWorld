@@ -439,6 +439,7 @@
   function createSearchableDropdown({ inputEl, listEl, statusEl, data, filterFn, formatLabel, formatSelected, onSelect }) {
     let selectedValue = '';
     let highlightedIdx = -1;
+    let blurTimeout = null;
     const fmtSelected = formatSelected || formatLabel;
 
     function render(filter) {
@@ -451,7 +452,9 @@
         li.dataset.name = item[1];
         li.setAttribute('role', 'option');
         li.id = listEl.id + '-option-' + i;
-        li.addEventListener('pointerdown', e => e.preventDefault());
+        li.addEventListener('pointerdown', e => {
+          if (e.pointerType === 'mouse') e.preventDefault();
+        });
         li.addEventListener('click', () => select(item));
         listEl.appendChild(li);
       });
@@ -461,6 +464,7 @@
     }
 
     function select(item) {
+      clearTimeout(blurTimeout);
       selectedValue = fmtSelected(item);
       inputEl.value = selectedValue;
       listEl.classList.remove('open');
@@ -496,13 +500,16 @@
     });
 
     inputEl.addEventListener('blur', () => {
-      listEl.classList.remove('open');
-      inputEl.setAttribute('aria-expanded', 'false');
-      inputEl.removeAttribute('aria-activedescendant');
-      if (!selectedValue) {
-        inputEl.value = '';
-        onSelect(null);
-      }
+      blurTimeout = setTimeout(() => {
+        listEl.classList.remove('open');
+        inputEl.setAttribute('aria-expanded', 'false');
+        inputEl.removeAttribute('aria-activedescendant');
+        if (!selectedValue) {
+          inputEl.value = '';
+          onSelect(null);
+        }
+      }, 150);
+    });
     });
 
     inputEl.addEventListener('keydown', e => {
