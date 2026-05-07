@@ -435,6 +435,116 @@
 </div>
 
 <script>
+  // ── Reusable searchable combobox helper ──
+  function createSearchableDropdown({ inputEl, listEl, statusEl, data, filterFn, formatLabel, formatSelected, onSelect }) {
+    let selectedValue = '';
+    let highlightedIdx = -1;
+    const fmtSelected = formatSelected || formatLabel;
+
+    function render(filter) {
+      const filtered = filterFn(data, filter);
+      listEl.innerHTML = '';
+      filtered.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.textContent = formatLabel(item);
+        li.dataset.code = item[0] || '';
+        li.dataset.name = item[1];
+        li.setAttribute('role', 'option');
+        li.id = listEl.id + '-option-' + i;
+        li.addEventListener('pointerdown', e => e.preventDefault());
+        li.addEventListener('click', () => select(item));
+        listEl.appendChild(li);
+      });
+      highlightedIdx = -1;
+      inputEl.removeAttribute('aria-activedescendant');
+      statusEl.textContent = filtered.length ? filtered.length + ' results available' : 'No results found';
+    }
+
+    function select(item) {
+      selectedValue = fmtSelected(item);
+      inputEl.value = selectedValue;
+      listEl.classList.remove('open');
+      inputEl.setAttribute('aria-expanded', 'false');
+      inputEl.removeAttribute('aria-activedescendant');
+      onSelect(item);
+    }
+
+    function updateHighlight(items) {
+      items.forEach((li, i) => {
+        const isActive = i === highlightedIdx;
+        li.classList.toggle('highlighted', isActive);
+        li.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        if (isActive) {
+          li.scrollIntoView({ block: 'nearest' });
+          inputEl.setAttribute('aria-activedescendant', li.id);
+        }
+      });
+    }
+
+    inputEl.addEventListener('focus', () => {
+      render(inputEl.value);
+      listEl.classList.add('open');
+      inputEl.setAttribute('aria-expanded', 'true');
+    });
+
+    inputEl.addEventListener('input', () => {
+      selectedValue = '';
+      render(inputEl.value);
+      listEl.classList.add('open');
+      inputEl.setAttribute('aria-expanded', 'true');
+      onSelect(null);
+    });
+
+    inputEl.addEventListener('blur', () => {
+      listEl.classList.remove('open');
+      inputEl.setAttribute('aria-expanded', 'false');
+      inputEl.removeAttribute('aria-activedescendant');
+      if (!selectedValue) {
+        inputEl.value = '';
+        onSelect(null);
+      }
+    });
+
+    inputEl.addEventListener('keydown', e => {
+      const isOpen = listEl.classList.contains('open');
+      const items = listEl.querySelectorAll('li');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isOpen) {
+          listEl.classList.add('open');
+          inputEl.setAttribute('aria-expanded', 'true');
+          return;
+        }
+        highlightedIdx = Math.min(highlightedIdx + 1, items.length - 1);
+        updateHighlight(items);
+      } else if (e.key === 'ArrowUp') {
+        if (!isOpen) return;
+        e.preventDefault();
+        highlightedIdx = Math.max(highlightedIdx - 1, 0);
+        updateHighlight(items);
+      } else if (e.key === 'Enter') {
+        if (!isOpen) return;
+        e.preventDefault();
+        const li =
+          highlightedIdx >= 0 && highlightedIdx < items.length
+          ? items[highlightedIdx]
+          : items[0];
+        if (li) {
+          const item = data.find(d => (d[0] || '') === li.dataset.code && d[1] === li.dataset.name)
+            || [li.dataset.code, li.dataset.name];
+          select(item);
+        }
+      } else if (e.key === 'Escape') {
+        listEl.classList.remove('open');
+        inputEl.setAttribute('aria-expanded', 'false');
+        inputEl.removeAttribute('aria-activedescendant');
+        highlightedIdx = -1;
+      }
+    });
+
+    return { getSelected: () => selectedValue };
+  }
+
   // ── Team list data ──
   const teams = [
     ["GEN","General"],
@@ -447,105 +557,19 @@
   // ── Searchable Team Dropdown ──
   const teamSearch = document.getElementById('teamSearch');
   const teamList = document.getElementById('teamList');
-  let selectedTeam = '';
-  let highlightedIndex = -1;
 
-  function renderTeamOptions(filter) {
-    const q = filter.toLowerCase();
-    const filtered = teams.filter(t =>
-      t[0].toLowerCase().includes(q) || t[1].toLowerCase().includes(q)
-    );
-    teamList.innerHTML = '';
-    filtered.forEach((t, i) => {
-      const li = document.createElement('li');
-      li.textContent = t[0] + ' — ' + t[1];
-      li.dataset.code = t[0];
-      li.dataset.name = t[1];
-      li.setAttribute('role', 'option');
-      li.id = 'team-option-' + i;
-      li.addEventListener('pointerdown', e => {
-        e.preventDefault();
-      });
-      li.addEventListener('click', () => {
-        selectTeam(t[0], t[1]);
-      });
-      teamList.appendChild(li);
-    });
-    highlightedIndex = -1;
-    teamSearch.removeAttribute('aria-activedescendant');
-    document.getElementById('teamStatus').textContent = filtered.length ? filtered.length + ' results available' : 'No results found';
-  }
-
-  function selectTeam(code, name) {
-    selectedTeam = code + ' — ' + name;
-    teamSearch.value = selectedTeam;
-    teamList.classList.remove('open');
-    teamSearch.setAttribute('aria-expanded', 'false');
-    teamSearch.removeAttribute('aria-activedescendant');
-    updatePreview();
-  }
-
-  teamSearch.addEventListener('focus', () => {
-    renderTeamOptions(teamSearch.value);
-    teamList.classList.add('open');
-    teamSearch.setAttribute('aria-expanded', 'true');
+  const teamDropdown = createSearchableDropdown({
+    inputEl: teamSearch,
+    listEl: teamList,
+    statusEl: document.getElementById('teamStatus'),
+    data: teams,
+    filterFn: (data, filter) => {
+      const q = filter.toLowerCase();
+      return data.filter(t => t[0].toLowerCase().includes(q) || t[1].toLowerCase().includes(q));
+    },
+    formatLabel: t => t[0] + ' — ' + t[1],
+    onSelect: () => updatePreview()
   });
-
-  teamSearch.addEventListener('input', () => {
-    selectedTeam = '';
-    renderTeamOptions(teamSearch.value);
-    teamList.classList.add('open');
-    teamSearch.setAttribute('aria-expanded', 'true');
-    updatePreview();
-  });
-
-  teamSearch.addEventListener('blur', () => {
-    teamList.classList.remove('open');
-    teamSearch.setAttribute('aria-expanded', 'false');
-    teamSearch.removeAttribute('aria-activedescendant');
-    if (!selectedTeam) {
-      teamSearch.value = '';
-      updatePreview();
-    }
-  });
-
-  teamSearch.addEventListener('keydown', e => {
-    const items = teamList.querySelectorAll('li');
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
-      updateHighlight(items);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      highlightedIndex = Math.max(highlightedIndex - 1, 0);
-      updateHighlight(items);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const li =
-        highlightedIndex >= 0 && highlightedIndex < items.length
-        ? items[highlightedIndex]
-        : items[0];
-      if (li) {
-        selectTeam(li.dataset.code, li.dataset.name);
-      }
-    } else if (e.key === 'Escape') {
-      teamList.classList.remove('open');
-      teamSearch.setAttribute('aria-expanded', 'false');
-      teamSearch.removeAttribute('aria-activedescendant');
-    }
-  });
-
-  function updateHighlight(items) {
-    items.forEach((li, i) => {
-      const isActive = i === highlightedIndex;
-      li.classList.toggle('highlighted', isActive);
-      li.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      if (isActive) {
-        li.scrollIntoView({ block: 'nearest' });
-        teamSearch.setAttribute('aria-activedescendant', li.id);
-      }
-    });
-  }
 
   // ── Destination Room/Lab data: [code, new site name, old site equivalent(s)] ──
   const destinations = [
@@ -559,107 +583,24 @@
   // ── Searchable Destination Dropdown ──
   const destSearch = document.getElementById('destSearch');
   const destList = document.getElementById('destList');
-  let selectedDest = '';
-  let destHighlightedIndex = -1;
 
-  function renderDestOptions(filter) {
-    const q = filter.toLowerCase();
-    const filtered = destinations.filter(d =>
-      (d[0] || '').toLowerCase().includes(q) || d[1].toLowerCase().includes(q) || (d[2] || '').toLowerCase().includes(q)
-    );
-    destList.innerHTML = '';
-    filtered.forEach((d, i) => {
-      const li = document.createElement('li');
+  const destDropdown = createSearchableDropdown({
+    inputEl: destSearch,
+    listEl: destList,
+    statusEl: document.getElementById('destStatus'),
+    data: destinations,
+    filterFn: (data, filter) => {
+      const q = filter.toLowerCase();
+      return data.filter(d =>
+        (d[0] || '').toLowerCase().includes(q) || d[1].toLowerCase().includes(q) || (d[2] || '').toLowerCase().includes(q)
+      );
+    },
+    formatLabel: d => {
       let label = d[0] ? d[0] + ' — ' + d[1] : d[1];
       if (d[2]) label += ' (' + d[2] + ')';
-      li.textContent = label;
-      li.dataset.code = d[0];
-      li.dataset.name = d[1];
-      li.setAttribute('role', 'option');
-      li.id = 'dest-option-' + i;
-      li.addEventListener('pointerdown', e => {
-        e.preventDefault();
-      });
-      li.addEventListener('click', () => {
-        selectDest(d[0], d[1]);
-      });
-      destList.appendChild(li);
-    });
-    destHighlightedIndex = -1;
-    destSearch.removeAttribute('aria-activedescendant');
-    document.getElementById('destStatus').textContent = filtered.length ? filtered.length + ' results available' : 'No results found';
-  }
-
-  function selectDest(code, name) {
-    selectedDest = code ? code + ' — ' + name : name;
-    destSearch.value = selectedDest;
-    destList.classList.remove('open');
-    destSearch.setAttribute('aria-expanded', 'false');
-    destSearch.removeAttribute('aria-activedescendant');
-    updatePreview();
-  }
-
-  destSearch.addEventListener('focus', () => {
-    renderDestOptions(destSearch.value);
-    destList.classList.add('open');
-    destSearch.setAttribute('aria-expanded', 'true');
+      return label;
+    },    formatSelected: d => d[0] ? d[0] + ' \u2014 ' + d[1] : d[1],    onSelect: () => updatePreview()
   });
-
-  destSearch.addEventListener('input', () => {
-    selectedDest = '';
-    renderDestOptions(destSearch.value);
-    destList.classList.add('open');
-    destSearch.setAttribute('aria-expanded', 'true');
-    updatePreview();
-  });
-
-  destSearch.addEventListener('blur', () => {
-    destList.classList.remove('open');
-    destSearch.setAttribute('aria-expanded', 'false');
-    destSearch.removeAttribute('aria-activedescendant');
-    if (!selectedDest) {
-      destSearch.value = '';
-      updatePreview();
-    }
-  });
-
-  destSearch.addEventListener('keydown', e => {
-    const items = destList.querySelectorAll('li');
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      destHighlightedIndex = Math.min(destHighlightedIndex + 1, items.length - 1);
-      updateDestHighlight(items);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      destHighlightedIndex = Math.max(destHighlightedIndex - 1, 0);
-      updateDestHighlight(items);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const li =
-        destHighlightedIndex >= 0 && destHighlightedIndex < items.length
-        ? items[destHighlightedIndex]
-        : items[0];
-      if (li) {
-        selectDest(li.dataset.code, li.dataset.name);
-      }
-    } else if (e.key === 'Escape') {
-      destList.classList.remove('open');
-      destSearch.setAttribute('aria-expanded', 'false');
-      destSearch.removeAttribute('aria-activedescendant');
-    }
-  });
-
-  function updateDestHighlight(items) {
-    items.forEach((li, i) => {
-      const isActive = i === destHighlightedIndex;
-      li.classList.toggle('highlighted', isActive);
-      li.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      if (isActive) {
-        li.scrollIntoView({ block: 'nearest' });
-        destSearch.setAttribute('aria-activedescendant', li.id);
-      }
-    });
-  }
 
   // ── Character counts ──
   const itemDesc = document.getElementById('itemDesc');
@@ -690,8 +631,8 @@
   let lastPgValue = '';
   function updatePreview() {
     const pg = document.getElementById('productGroup').value;
-    const team = selectedTeam;
-    const dest = selectedDest;
+    const team = teamDropdown.getSelected();
+    const dest = destDropdown.getSelected();
     const hand = document.getElementById('handling').value;
     const desc = itemDesc.value;
     const orig = origLocation.value;
@@ -716,8 +657,8 @@
   // ── Print ──
   function handlePrint() {
     const pg = document.getElementById('productGroup').value;
-    const team = selectedTeam;
-    const dest = selectedDest;
+    const team = teamDropdown.getSelected();
+    const dest = destDropdown.getSelected();
     const hand = document.getElementById('handling').value;
     const desc = itemDesc.value.trim();
 
